@@ -1,0 +1,44 @@
+#!/usr/bin/env rc
+
+. $PLAN9/lib/acme.rc
+
+fn winbody { echo $* | 9p write acme/$winid/body }
+
+dir=`{git rev-parse --show-toplevel >[2]/dev/null}|| { echo 'not in a git repository'; exit 1 }
+cd $dir
+oifs=$ifs
+ifs='
+'
+gstatus=`{git status --porcelain}
+staged=`{for(f in $gstatus) echo $f|awk '/^A / || /^M / {print $2}'}
+modified=`{for(f in $gstatus) echo $f|awk '/^ M/{print $2}'}
+untracked=`{for(f in $gstatus) echo $f|awk '/^\?\?/{print $2}'}
+if(~ $staged 0 && ~ $#modified 0 && ~ $#untracked 0){
+	echo 'everything is up to date'
+	exit 0
+}
+ifs=$oifs
+newwindow
+winname $dir/+agit
+winbody GIT Status
+winbody '==========='
+if(! ~ $#staged 0){
+	winbody Staged files:
+	for(f in $staged) winbody '	[git checkout -- '^$f^']'
+	winbody ''
+}
+if(! ~ $#modified 0){
+	winbody Modified files:
+	for(f in $modified) winbody '	[git add '^$f^'] [git diff '^$f^']'
+	winbody ''
+}
+if(! ~ $#untracked 0){
+	winbody Untracked files:
+	for(f in $untracked) winbody '	[git add '^$f^']'
+	winbody ''
+}
+winbody '==========='
+winbody '[git commit]'
+winbody '[git push]'
+winbody '[git log]'
+winctl clean

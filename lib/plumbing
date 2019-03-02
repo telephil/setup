@@ -1,0 +1,8 @@
+editor=acme
+
+# git commit from git log output
+type	is	text
+data	matches	'commit ([a-zA-Z0-9]+)'
+plumb	start	rc -c 'git -C '$wdir' show '$1' | plumb -w '$wdir' -d edit -a ''action=showdata filename=+'$1''' -i'
+
+include basic

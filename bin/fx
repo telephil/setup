@@ -1,0 +1,20 @@
+#!/usr/bin/env rc
+
+url='https://api.exchangeratesapi.io/latest'
+
+fn conv {
+	val=$1
+	cur=$2
+ 	rate=`{curl -s $url | jq -rM .rates.$cur}
+	~ $rate 'null' && { echo 'unable to get '^$cur^' rate'; exit 1 }
+	echo $rate^'*'^$val | bc
+}
+
+switch($#*) {
+	case 1
+		conv $1 USD
+	case 2
+		conv $1 $2
+	case *
+		echo 'Usage: '^$0^' amount [currency]'
+}
